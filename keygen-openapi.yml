@@ -5152,10 +5152,14 @@ components:
                 The raw token of the token. This attribute is only available to read directly after token generation.
                 This is the value you will use to authenticate with when sending requests to our API.
             name:
-              type: string
+              type:
+                - string
+                - "null"
               description: An optional name for the token. This can be used to easily identify tokens at a glance.
             expiry:
-              type: string
+              type:
+                - string
+                - "null"
               format: date-time
               description: The timestamp for when the token expires. Requests using an expired token will be rejected.
             maxActivations:
@@ -5190,14 +5194,15 @@ components:
               type: string
               format: date-time
               description: When the token was last updated.
+            permissions:
+              type: array
+              items:
+                type: string
+              description: An array of permissions the token has.
           required:
             - kind
             - token
             - expiry
-            - maxActivations
-            - activations
-            - maxDeactivations
-            - deactivations
             - created
             - updated
         relationships:
