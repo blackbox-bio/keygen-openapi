@@ -6331,13 +6331,19 @@ components:
           type: object
           properties:
             fullName:
-              type: string
+              type:
+                - string
+                - "null"
               description: The full name of the user.
             firstName:
-              type: string
+              type:
+                - string
+                - "null"
               description: The first name of the user.
             lastName:
-              type: string
+              type:
+                - string
+                - "null"
               description: The last name of the user.
             email:
               type: string
@@ -6384,6 +6390,11 @@ components:
                   for account billing.
                 - **`admin`**:
                   An internal administrative user of your Keygen account, with permission to manage the entire account.
+            permissions:
+              type: array
+              items:
+                type: string
+              description: An array of permissions the user has.
             metadata:
               type: object
               description: Object containing user metadata.
@@ -6451,7 +6462,6 @@ components:
                     - id
               required:
                 - links
-                - data
             products:
               type: object
               description: The products that the user is associated with.
@@ -6484,6 +6494,14 @@ components:
                   $ref: "#/components/schemas/RelatedLinks"
               required:
                 - links
+            secondFactors:
+              type: object
+              description: The second factors of the user.
+              properties:
+                links:
+                  $ref: "#/components/schemas/RelatedLinks"
+              required:
+                - links
           required:
             - account
             - group
@@ -6491,6 +6509,7 @@ components:
             - licenses
             - machines
             - tokens
+            - secondFactors
         links:
           $ref: "#/components/schemas/SelfLinks"
       required:
