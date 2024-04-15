@@ -2000,7 +2000,6 @@ paths:
                     $ref: "#/components/schemas/PaginationLinks"
                 required:
                   - data
-                  - links
         default:
           $ref: "#/components/responses/Error"
   /accounts/{account}/users/{user}:
