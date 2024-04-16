@@ -6988,6 +6988,19 @@ components:
             issued:
               type: string
               format: date-time
+            includes:
+              type: array
+              items:
+                type: string
+                enum:
+                  - entitlements
+                  - product
+                  - policy
+                  - user
+                  - environment
+                  - group
+              description: |
+                The relationship data included in the license file.
           required:
             - certificate
             - ttl
