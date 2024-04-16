@@ -6533,7 +6533,9 @@ components:
           type: object
           properties:
             name:
-              type: string
+              type:
+                - string
+                - "null"
               description: The name of the license. This can be used to distinguish licenses from eachother.
             key:
               type: string
@@ -6579,7 +6581,9 @@ components:
               type: boolean
               description: The license's last validated release version.
             version:
-              type: string
+              type:
+                - string
+                - "null"
               description: |
                 The version of the license. This is useful for versioning your licenses, e.g. for a beta program.
                 This attribute is not taken into account during license validation. See the license's usage-related
@@ -6591,7 +6595,9 @@ components:
               type: boolean
               description: Whether or not the license is floating. This is inherited from the policy.
             scheme:
-              type: string
+              type:
+                - string
+                - "null"
               enum:
                 - RSA_2048_JWT_RS256
                 - ED25519_JWT_EDDSA
@@ -6682,6 +6688,11 @@ components:
               type: string
               format: date-time
               description: When the license was last updated.
+            permissions:
+              type: array
+              items:
+                type: string
+              description: An array of permissions the license has.
           required:
             - name
             - key
@@ -6791,7 +6802,6 @@ components:
                     - type
                     - id
               required:
-                - data
                 - links
             user:
               type: object
@@ -6813,11 +6823,35 @@ components:
                     - type
                     - id
               required:
-                - data
                 - links
             machines:
               type: object
               description: The machines that the license is associated with.
+              properties:
+                links:
+                  $ref: "#/components/schemas/RelatedLinks"
+                meta:
+                  type: object
+                  properties:
+                    cores:
+                      type: integer
+                      format: int64
+                    count:
+                      type: integer
+                      format: int64
+              required:
+                - links
+            tokens:
+              type: object
+              description: The authentication tokens of the license.
+              properties:
+                links:
+                  $ref: "#/components/schemas/RelatedLinks"
+              required:
+                - links
+            entitlements:
+              type: object
+              description: The entitlements that the license is associated with.
               properties:
                 links:
                   $ref: "#/components/schemas/RelatedLinks"
