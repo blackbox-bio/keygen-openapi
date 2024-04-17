@@ -4281,12 +4281,14 @@ paths:
             items:
               type: string
               enum:
+                - license.entitlements
                 - license.product
                 - license.policy
                 - license.user
                 - license
+                - components
+                - environment
                 - group
-                - user
         - name: encrypt
           in: query
           description: Whether or not to encrypt the machine file.
@@ -6979,6 +6981,7 @@ components:
           properties:
             certificate:
               type: string
+              description: The certificate of the license. This is the FilePayload encoded as a base64 string.
             ttl:
               type: integer
               format: int64
@@ -7055,6 +7058,52 @@ components:
         - type
         - attributes
         - relationships
+    FilePayload:
+      type: object
+      properties:
+        enc:
+          type: string
+          format: byte
+          description: The license/machine data encoded in base64 that will be encrypted if `encrypt` was used during the checkout.
+        sig:
+          type: string
+          format: byte
+          description: The signature encoded in base64 signed by the algorithm specified in `alg`.
+        alg:
+          type: string
+          enum:
+            - aes-256-gcm+ed25519
+            - aes-256-gcm+rsa-pss-sha256
+            - aes-256-gcm+rsa-sha256
+            - base64+ed25519
+            - base64+rsa-pss-sha256
+            - base64+rsa-sha256
+          description: The algorithm used for encryption and signing.
+      required:
+        - enc
+        - sig
+        - alg
+    LicenseFilePayloadEnc:
+      type: object
+      properties:
+        data:
+          $ref: "#/components/schemas/License"
+        included:
+          type: array
+          items:
+            anyOf:
+              - $ref: "#/components/schemas/Entitlement"
+              - $ref: "#/components/schemas/Product"
+              - $ref: "#/components/schemas/Policy"
+              - $ref: "#/components/schemas/User"
+              - $ref: "#/components/schemas/Group"
+              # - $ref: "#/components/schemas/Environment"
+        meta:
+          $ref: "#/components/schemas/FilePayloadMeta"
+      required:
+        - data
+        - included
+        - meta
     Machine:
       type: object
       summary: The machine object
@@ -7311,6 +7360,7 @@ components:
           properties:
             certificate:
               type: string
+              description: The certificate of the machine. This is the FilePayload encoded as a base64 string.
             ttl:
               type: integer
               format: int64
@@ -7387,6 +7437,47 @@ components:
         - type
         - attributes
         - relationships
+    MachineFilePayloadEnc:
+      type: object
+      properties:
+        data:
+          $ref: "#/components/schemas/Machine"
+        included:
+          type: array
+          items:
+            anyOf:
+              - $ref: "#/components/schemas/Entitlement"
+              - $ref: "#/components/schemas/Product"
+              - $ref: "#/components/schemas/Policy"
+              - $ref: "#/components/schemas/User"
+              - $ref: "#/components/schemas/License"
+              # - $ref: "#/components/schemas/Component"
+              # - $ref: "#/components/schemas/Environment"
+              - $ref: "#/components/schemas/Group"
+        meta:
+          $ref: "#/components/schemas/FilePayloadMeta"
+      required:
+        - data
+        - included
+        - meta
+    FilePayloadMeta:
+      type: object
+      properties:
+        issued:
+          type: string
+          format: date-time
+        expiry:
+          type:
+            - string
+            - "null"
+          format: date-time
+        ttl:
+          type: integer
+          description: The time-to-live (TTL) of the checked out file, in seconds.
+      required:
+        - issued
+        - expiry
+        - ttl
     Process:
       type: object
       summary: The process object
