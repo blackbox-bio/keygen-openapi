@@ -3339,6 +3339,13 @@ paths:
                 - policy
                 - user
                 - group
+        - name: encrypt
+          in: query
+          description: Whether or not to encrypt the license file. The license file will be encrypted using AES-256-GCM, with a SHA256 digest of the license's key as the secret.
+          required: false
+          schema:
+            type: boolean
+            default: false
       responses:
         "200":
           description: License checked out successfully
@@ -4291,7 +4298,7 @@ paths:
                 - group
         - name: encrypt
           in: query
-          description: Whether or not to encrypt the machine file.
+          description: Whether or not to encrypt the machine file. The machine file will be encrypted using AES-256-GCM, with a SHA256 digest of the license's key concatenated with the machine's fingerprint as the secret.
           required: false
           schema:
             type: boolean
