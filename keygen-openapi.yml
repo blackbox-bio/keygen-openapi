@@ -6601,8 +6601,11 @@ components:
                 - string
                 - "null"
               enum:
+                - ED25519_SIGN
+                - RSA_2048_PKCS1_PSS_SIGN_V2
+                - RSA_2048_PKCS1_SIGN_V2
+                - RSA_2048_PKCS1_ENCRYPT
                 - RSA_2048_JWT_RS256
-                - ED25519_JWT_EDDSA
               description: |
                 The cryptographic encryption/signature scheme used on the license's key. Can be used to implement
                 offline licensing by securely storing arbitrary data within a license's key.
