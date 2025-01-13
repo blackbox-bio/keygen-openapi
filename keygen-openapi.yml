@@ -2537,6 +2537,11 @@ paths:
                           type: integer
                           format: int64
                           description: The maximum number of machine processes the license can have associated with it.
+                        maxUsers:
+                          type: integer
+                          format: int64
+                          description: |
+                            The maximum number of users the license can have associated with it. This is by default inherited from the policy, but can be overridden on a per-license basis.
                         maxCores:
                           type: integer
                           format: int64
@@ -2594,7 +2599,7 @@ paths:
                                 - id
                           required:
                             - data
-                        user:
+                        owner:
                           type: object
                           description: The user the license belongs to.
                           properties:
@@ -3843,13 +3848,17 @@ paths:
         default:
           $ref: "#/components/responses/Error"
   /accounts/{account}/licenses/{license}/user:
-    put:
+    post:
       tags:
         - Licenses
-      operationId: changeLicenseUser
-      summary: Change user
+      operationId: attachUsers
+      summary: Attach Users
       description: |
-        Change a license's user relationship. This will immediately transfer the license resource to the new user.
+        Attach users to a license. This will immediately be taken into effect for all future validations. Attaching a user to a license allows that user access to the license, and depending on permissions, the ability to perform actions for the license, such as machine activation and deactivation.
+
+        Below are the limitations to attaching a user:
+          You cannot attach a user that is already attached as the owner.
+          You cannot attach an already attached user.
       parameters:
         - $ref: "#/components/parameters/Account"
         - name: license
@@ -3883,7 +3892,7 @@ paths:
                 - data
       responses:
         "200":
-          description: User changed successfully
+          description: User attached successfully
           content:
             application/vnd.api+json:
               schema:
@@ -3892,6 +3901,101 @@ paths:
                 properties:
                   data:
                     $ref: "#/components/schemas/License"
+                required:
+                  - data
+        default:
+          $ref: "#/components/responses/Error"
+    delete:
+      tags:
+        - Licenses
+      operationId: detachUsers
+      summary: Detach Users
+      description: |
+        Detach users from a license. This will immediately be taken into effect for all future validations and the user will no longer have access to the license or its machines. In addition, any machines that the user owns for the license will be detached from the user, i.e. the machine's owner will be nullified, but the machine will remain activated.
+
+        Below are the limitations to attaching a user:
+          You cannot attach a user that is already attached as the owner.
+          You cannot attach an already attached user.
+      parameters:
+        - $ref: "#/components/parameters/Account"
+        - name: license
+          in: path
+          description: The identifier (UUID) or key of the license to be updated.
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/vnd.api+json:
+            schema:
+              title: ChangeLicenseUserRequest
+              type: object
+              properties:
+                data:
+                  type:
+                    - object
+                    - "null"
+                  properties:
+                    type:
+                      type: string
+                      enum: [users]
+                    id:
+                      type: string
+                  required:
+                    - type
+                    - id
+              required:
+                - data
+      responses:
+        "200":
+          description: User detached successfully
+          content:
+            application/vnd.api+json:
+              schema:
+                title: ChangeLicenseUserResponse
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/License"
+                required:
+                  - data
+        default:
+          $ref: "#/components/responses/Error"
+  /accounts/{account}/licenses/{license}/users:
+    get:
+      tags:
+        - Licenses
+      operationId: getLicenseUsers
+      summary: List users for a license
+      description: |
+        Returns a list of users attached to the license. The users are returned sorted by creation date, with the most recent users appearing first. The listed users include all users attached to the license, in addition to the license's owner.
+      parameters:
+        - name: license
+          in: path
+          description: The identifier (UUID) or key of the license to list users for.
+          required: true
+          schema:
+            type: string
+        - $ref: "#/components/parameters/Account"
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/Limit"
+          description: A limit on the number of users to be returned. Limit must be a number between 1 and 100.
+      responses:
+        "200":
+          description: Users retrieved successfully
+          content:
+            application/vnd.api+json:
+              schema:
+                title: ListLicenseUsersResponse
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/User"
+                  links:
+                    $ref: "#/components/schemas/PaginationLinks"
                 required:
                   - data
         default:
@@ -6727,6 +6831,13 @@ components:
               description: |
                 The maximum number of machine processes the license can have associated with it. This is by default
                 inherited from the policy, but can be overridden on a per-license basis.
+            maxUsers:
+              type:
+                - integer
+                - "null"
+              format: int64
+              description: |
+                The maximum number of users the license can have associated with it. This is by default inherited from the policy, but can be overridden on a per-license basis.
             maxCores:
               type:
                 - integer
@@ -6907,7 +7018,7 @@ components:
                     - id
               required:
                 - links
-            user:
+            owner:
               type: object
               description: The user that owns the license.
               properties:
@@ -6926,6 +7037,20 @@ components:
                   required:
                     - type
                     - id
+              required:
+                - links
+            users:
+              type: object
+              description: The user that the license is associated with.
+              properties:
+                links:
+                  $ref: "#/components/schemas/RelatedLinks"
+                meta:
+                  type: object
+                  properties:
+                    count:
+                      type: integer
+                      format: int64
               required:
                 - links
             machines:
@@ -7403,7 +7528,7 @@ components:
               required:
                 - data
                 - links
-            user:
+            owner:
               type: object
               description: The user that owns the machine.
               properties:
