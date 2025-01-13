@@ -1212,13 +1212,45 @@ paths:
                             - NONE
                           default: TOKEN
                           description: The strategy used for authenticating as a license, for client-side integrations.
-                        leasingStrategy:
+                        machineLeasingStrategy:
+                          type: string
+                          enum:
+                            - PER_LICENSE
+                            - PER_USER
+                          description: |
+                            The strategy used for leasing machines.
+
+                            Please note that a nil owner is significant for a PER_USER leasing strategy. When a machine's owner is nil (or null), the sum of all machines with a nil owner will be counted towards the license's machine limit. Please make sure that you're assigning an owner to machines if you utilize this leasing strategy.
+
+                            This defines how machines are leased and counted, especially i.r.t. the policy's max machines limit.
+
+                            ### Options
+
+                            - **`PER_LICENSE`**:
+                              Machines are counted per-license. For example, with a max machines value of 2, each license could have 2 machines. This is the default.
+                            - **`PER_USER`**:
+                              Machines are counted per-user, per-license. For example, with a max machines value of 2, each user could have 2 machines per-license.
+                        processLeasingStrategy:
                           type: string
                           enum:
                             - PER_MACHINE
                             - PER_LICENSE
-                          default: PER_MACHINE
-                          description: The strategy used for leasing machine processes.
+                            - PER_USER
+                          description: |
+                            The strategy used for leasing machine processes.
+
+                            Please note that a nil owner is significant for a PER_USER leasing strategy. When a machine's owner is nil (or null), the sum of all processes belonging to a machine with a nil owner will be counted towards the license's process limit. Please make sure that you're assigning an owner to machines if you utilize this leasing strategy.
+
+                            This defines how processes are leased and counted, especially i.r.t. the policy's max processes limit.
+
+                            ### Options
+
+                            - **`PER_MACHINE`**:
+                              Processes are counted per-machine. For example, given a policy with a max processes value of 5, each license could have up to 5 processes for each machine. This is the default.
+                            - **`PER_LICENSE`**:
+                              Processes are counted per-license. For example, with a max processes value of 5, each license could have up to 5 processes combined across all machines.
+                            - **`PER_USER`**:
+                              Processes are counted per-user, per-license. For example, with a max processes value of 5, each user could have up to 5 processes combined across all owned machines per-license.
                         overageStrategy:
                           type: string
                           enum:
@@ -1585,12 +1617,45 @@ paths:
                             - MIXED
                             - NONE
                           description: The strategy used for authenticating as a license, for client-side integrations.
-                        leasingStrategy:
+                        machineLeasingStrategy:
+                          type: string
+                          enum:
+                            - PER_LICENSE
+                            - PER_USER
+                          description: |
+                            The strategy used for leasing machines.
+
+                            Please note that a nil owner is significant for a PER_USER leasing strategy. When a machine's owner is nil (or null), the sum of all machines with a nil owner will be counted towards the license's machine limit. Please make sure that you're assigning an owner to machines if you utilize this leasing strategy.
+
+                            This defines how machines are leased and counted, especially i.r.t. the policy's max machines limit.
+
+                            ### Options
+
+                            - **`PER_LICENSE`**:
+                              Machines are counted per-license. For example, with a max machines value of 2, each license could have 2 machines. This is the default.
+                            - **`PER_USER`**:
+                              Machines are counted per-user, per-license. For example, with a max machines value of 2, each user could have 2 machines per-license.
+                        processLeasingStrategy:
                           type: string
                           enum:
                             - PER_MACHINE
                             - PER_LICENSE
-                          description: The strategy used for leasing machine processes.
+                            - PER_USER
+                          description: |
+                            The strategy used for leasing machine processes.
+
+                            Please note that a nil owner is significant for a PER_USER leasing strategy. When a machine's owner is nil (or null), the sum of all processes belonging to a machine with a nil owner will be counted towards the license's process limit. Please make sure that you're assigning an owner to machines if you utilize this leasing strategy.
+
+                            This defines how processes are leased and counted, especially i.r.t. the policy's max processes limit.
+
+                            ### Options
+
+                            - **`PER_MACHINE`**:
+                              Processes are counted per-machine. For example, given a policy with a max processes value of 5, each license could have up to 5 processes for each machine. This is the default.
+                            - **`PER_LICENSE`**:
+                              Processes are counted per-license. For example, with a max processes value of 5, each license could have up to 5 processes combined across all machines.
+                            - **`PER_USER`**:
+                              Processes are counted per-user, per-license. For example, with a max processes value of 5, each user could have up to 5 processes combined across all owned machines per-license.
                         overageStrategy:
                           type: string
                           enum:
@@ -6040,21 +6105,47 @@ components:
                 - **`LICENSE`**: Allow licenses to authenticate using [a license key](https://keygen.sh/docs/api/authentication/#license-authentication).
                 - **`MIXED`**: Allow both license token and license key authentication (each covered above).
                 - **`NONE`**: Disable the ability for licenses to authenticate with the API.
-            leasingStrategy:
+            machineLeasingStrategy:
+              type: string
+              enum:
+                - PER_LICENSE
+                - PER_USER
+              default: PER_LICENSE
+              description: |
+                The strategy used for leasing machines.
+
+                Please note that a nil owner is significant for a PER_USER leasing strategy. When a machine's owner is nil (or null), the sum of all machines with a nil owner will be counted towards the license's machine limit. Please make sure that you're assigning an owner to machines if you utilize this leasing strategy.
+
+                This defines how machines are leased and counted, especially i.r.t. the policy's max machines limit.
+
+                ### Options
+
+                - **`PER_LICENSE`**:
+                  Machines are counted per-license. For example, with a max machines value of 2, each license could have 2 machines. This is the default.
+                - **`PER_USER`**:
+                  Machines are counted per-user, per-license. For example, with a max machines value of 2, each user could have 2 machines per-license.
+            processLeasingStrategy:
               type: string
               enum:
                 - PER_MACHINE
                 - PER_LICENSE
+                - PER_USER
+              default: PER_MACHINE
               description: |
                 The strategy used for leasing machine processes.
+
+                Please note that a nil owner is significant for a PER_USER leasing strategy. When a machine's owner is nil (or null), the sum of all processes belonging to a machine with a nil owner will be counted towards the license's process limit. Please make sure that you're assigning an owner to machines if you utilize this leasing strategy.
+
+                This defines how processes are leased and counted, especially i.r.t. the policy's max processes limit.
 
                 ### Options
 
                 - **`PER_MACHINE`**:
-                  Machine processes are counted per-machine, i.e. limits are enforced individually for each machine.
-                  This is the default.
+                  Processes are counted per-machine. For example, given a policy with a max processes value of 5, each license could have up to 5 processes for each machine. This is the default.
                 - **`PER_LICENSE`**:
-                  Machine processes are counted per-license, i.e. collectively across all of a license's machines.
+                  Processes are counted per-license. For example, with a max processes value of 5, each license could have up to 5 processes combined across all machines.
+                - **`PER_USER`**:
+                  Processes are counted per-user, per-license. For example, with a max processes value of 5, each user could have up to 5 processes combined across all owned machines per-license.
             overageStrategy:
               type: string
               enum:
@@ -6135,7 +6226,8 @@ components:
             - expirationStrategy
             - transferStrategy
             - authenticationStrategy
-            - leasingStrategy
+            - machineLeasingStrategy
+            - processLeasingStrategy
             - overageStrategy
             - metadata
             - created
