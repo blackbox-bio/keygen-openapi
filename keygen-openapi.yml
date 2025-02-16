@@ -2565,7 +2565,7 @@ paths:
                       properties:
                         policy:
                           type: object
-                          description: The policy to implement for the license.
+                          description: The policy that the license implements.
                           properties:
                             data:
                               type: object
@@ -2580,28 +2580,9 @@ paths:
                                 - id
                           required:
                             - data
-                        group:
-                          type: object
-                          description: The group the license belongs to.
-                          properties:
-                            data:
-                              type:
-                                - object
-                                - "null"
-                              properties:
-                                type:
-                                  type: string
-                                  enum: [groups]
-                                id:
-                                  type: string
-                              required:
-                                - type
-                                - id
-                          required:
-                            - data
                         owner:
                           type: object
-                          description: The user the license belongs to.
+                          description: The user that owns the license.
                           properties:
                             data:
                               type:
@@ -2611,6 +2592,25 @@ paths:
                                 type:
                                   type: string
                                   enum: [users]
+                                id:
+                                  type: string
+                              required:
+                                - type
+                                - id
+                          required:
+                            - data
+                        group:
+                          type: object
+                          description: The group that the license belongs to.
+                          properties:
+                            data:
+                              type:
+                                - object
+                                - "null"
+                              properties:
+                                type:
+                                  type: string
+                                  enum: [groups]
                                 id:
                                   type: string
                               required:
@@ -4135,6 +4135,23 @@ paths:
                                 - id
                           required:
                             - data
+                        owner:
+                          type: object
+                          description: The user the machine belongs to. If authenticated as a license user, this relationship is required and must be the authenticated user.
+                          properties:
+                            data:                              
+                              type:
+                                - object
+                                - "null"
+                              properties:
+                                type:
+                                  type: string
+                                  enum: [users]
+                                id:
+                                  type: string
+                              required:
+                                - type
+                                - id
                         group:
                           type: object
                           description: The group the machine belongs to.
@@ -4154,6 +4171,11 @@ paths:
                                 - id
                           required:
                             - data
+                        components:
+                          type: array
+                          description: The components that the machine is entitled to.
+                          items:
+                            $ref: "#/components/schemas/Component"
                       required:
                         - license
                   required:
@@ -4935,8 +4957,23 @@ paths:
                                 - id
                           required:
                             - data
+                        owner:
+                          type: object
+                          description: The user that owns the process.
+                          properties:
+                            links:
+                              $ref: "#/components/schemas/RelatedLinks"
+                            data:
+                              type: object
+                              properties:
+                                type:
+                                  type: string
+                                  enum: [users]
+                                id:
+                                  type: string
                       required:
                         - machine
+                        - owner
                   required:
                     - type
                     - attributes
@@ -4981,6 +5018,12 @@ paths:
         - name: license
           in: query
           description: The identifier (UUID) of the license to filter by.
+          required: false
+          schema:
+            type: string
+        - name: owner
+          in: query
+          description: The identifier (UUID) of the owner to filter by.
           required: false
           schema:
             type: string
