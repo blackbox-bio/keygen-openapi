@@ -4620,6 +4620,265 @@ paths:
                   - data
         default:
           $ref: "#/components/responses/Error"
+  /accounts/{account}/components:
+    post:
+      tags:
+        - Components
+      operationId: createComponent
+      summary: Add a component
+      description: Adds a new component resource for a machine.
+      parameters:
+        - $ref: "#/components/parameters/Account"
+      security:
+        - BearerToken: []
+      requestBody:
+        required: true
+        content:
+          application/vnd.api+json:
+            schema:
+              title: CreateComponentRequest
+              type: object
+              properties:
+                data:
+                  type: object
+                  properties:
+                    type:
+                      type: string
+                      enum: [components]
+                    attributes:
+                      type: object
+                      properties:
+                        fingerprint:
+                          type: string
+                          description: The unique fingerprint of the component, e.g. a motherboard serial number. Must be unique within the scope of the machine it belongs to.
+                        name:
+                          type: string
+                          description: The human readable-name of the component.
+                        metadata:
+                          type: object
+                          additionalProperties: true
+                          description: Object containing component metadata.
+                      required:
+                        - fingerprint
+                        - name
+                    relationships:
+                      type: object
+                      properties:
+                        machine:
+                          type: object
+                          description: The machine the component is for.
+                          properties:
+                            data:
+                              type: object
+                              properties:
+                                type:
+                                  type: string
+                                  enum: [machines]
+                                id:
+                                  type: string
+                              required:
+                                - type
+                                - id
+                          required:
+                            - data
+                      required:
+                        - machine
+                  required:
+                    - type
+                    - attributes
+                    - relationships
+              required:
+                - data
+      responses:
+        "201":
+          description: Component created successfully
+          content:
+            application/vnd.api+json:
+              schema:
+                title: CreateComponentResponse
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Component"
+                required:
+                  - data
+        default:
+          $ref: "#/components/responses/Error"
+    get:
+      tags:
+        - Components
+      operationId: listComponents
+      summary: List all components
+      description: |
+        Returns a list of components. The components are returned sorted by creation date,
+        with the most recent components appearing first. Resources are automatically
+        scoped to the authenticated bearer e.g. when authenticated as a user,
+        only components for that specific user will be listed.
+      parameters:
+        - $ref: "#/components/parameters/Account"
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/Limit"
+          description: A limit on the number of components to be returned.
+        - name: machine
+          in: query
+          description: The identifier (UUID) of the machine to filter by.
+          schema:
+            type: string
+            format: uuid
+        - name: license
+          in: query
+          description: The identifier (UUID) of the license to filter by.
+          schema:
+            type: string
+            format: uuid
+        - name: owner
+          in: query
+          description: The identifier (UUID) of the owner to filter by.
+          schema:
+            type: string
+            format: uuid
+        - name: user
+          in: query
+          description: The identifier (UUID) of the user to filter by.
+          schema:
+            type: string
+            format: uuid
+        - name: product
+          in: query
+          description: The identifier (UUID) of the product to filter by.
+          schema:
+            type: string
+            format: uuid
+      security:
+        - BearerToken: []
+      responses:
+        "200":
+          description: Components retrieved successfully
+          content:
+            application/vnd.api+json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Component"
+                required:
+                  - data
+        default:
+          $ref: "#/components/responses/Error"
+  /accounts/{account}/components/{id}:
+    get:
+      tags:
+        - Components
+      operationId: retrieveComponent
+      summary: Retrieve a component
+      description: Retrieves the details of an existing component.
+      parameters:
+        - $ref: "#/components/parameters/Account"
+        - name: id
+          in: path
+          description: The identifier (UUID) of the component to be retrieved.
+          required: true
+          schema:
+            type: string
+      security:
+        - BearerToken: []
+      responses:
+        "200":
+          description: Component retrieved successfully
+          content:
+            application/vnd.api+json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Component"
+                required:
+                  - data
+        default:
+          $ref: "#/components/responses/Error"
+    patch:
+      tags:
+        - Components
+      operationId: updateComponent
+      summary: Update a component
+      description: |
+        Updates the specified component resource by setting the values of the parameters
+        passed. Any parameters not provided will be left unchanged.
+      parameters:
+        - $ref: "#/components/parameters/Account"
+        - name: id
+          in: path
+          description: The identifier (UUID) of the component to be updated.
+          required: true
+          schema:
+            type: string
+      security:
+        - BearerToken: []
+      requestBody:
+        required: true
+        content:
+          application/vnd.api+json:
+            schema:
+              type: object
+              properties:
+                data:
+                  type: object
+                  properties:
+                    type:
+                      type: string
+                      enum: [components]
+                    attributes:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          description: The human readable-name of the component.
+                        metadata:
+                          type: object
+                          additionalProperties: true
+                          description: Object containing component metadata.
+                          x-protected: true
+                  required:
+                    - type
+              required:
+                - data
+      responses:
+        "200":
+          description: Component updated successfully
+          content:
+            application/vnd.api+json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Component"
+                required:
+                  - data
+        default:
+          $ref: "#/components/responses/Error"
+    delete:
+      tags:
+        - Components
+      operationId: deleteComponent
+      summary: Remove a component
+      description: Permanently removes a component. It cannot be undone.
+      parameters:
+        - $ref: "#/components/parameters/Account"
+        - name: id
+          in: path
+          description: The identifier (UUID) of the component to be deleted.
+          required: true
+          schema:
+            type: string
+      security:
+        - BearerToken: []
+      responses:
+        "204":
+          description: Component deleted successfully
+        default:
+          $ref: "#/components/responses/Error"
   /accounts/{account}/processes:
     post:
       tags:
@@ -7550,6 +7809,14 @@ components:
               required:
                 - data
                 - links
+            components:
+              type: object
+              description: The components for the machine.
+              properties:
+                links:
+                  $ref: "#/components/schemas/RelatedLinks"
+              required:
+                - links
             processes:
               type: object
               description: The processes for the machine.
@@ -7678,7 +7945,7 @@ components:
               - $ref: "#/components/schemas/Policy"
               - $ref: "#/components/schemas/User"
               - $ref: "#/components/schemas/License"
-              # - $ref: "#/components/schemas/Component"
+              - $ref: "#/components/schemas/Component"
               # - $ref: "#/components/schemas/Environment"
               - $ref: "#/components/schemas/Group"
         meta:
@@ -7705,6 +7972,135 @@ components:
         - issued
         - expiry
         - ttl
+    Component:
+      type: object
+      properties:
+        id:
+          type: string
+          description: The unique identifier for the component.
+        type:
+          type: string
+          enum: [components]
+        attributes:
+          type: object
+          properties:
+            fingerprint:
+              type: string
+              description: The unique fingerprint of the component, e.g. a motherboard serial number. Must be unique within the scope of the machine it belongs to.
+            name:
+              type: string
+              description: The human readable-name of the component.
+            metadata:
+              type: object
+              additionalProperties: true
+              description: Object containing component metadata.
+            created:
+              type: string
+              format: date-time
+              description: When the component was created.
+              readOnly: true
+            updated:
+              type: string
+              format: date-time
+              description: When the component was last updated.
+              readOnly: true
+          required:
+            - fingerprint
+            - name
+        relationships:
+          type: object
+          properties:
+            account:
+              type: object
+              description: The account that the process belongs to.
+              properties:
+                links:
+                  $ref: "#/components/schemas/RelatedLinks"
+                data:
+                  type: object
+                  properties:
+                    type:
+                      type: string
+                      enum: [accounts]
+                    id:
+                      type: string
+                  required:
+                    - type
+                    - id
+              required:
+                - data
+                - links
+            product:
+              type: object
+              description: The product that the process is associated with.
+              properties:
+                links:
+                  $ref: "#/components/schemas/RelatedLinks"
+                data:
+                  type: object
+                  properties:
+                    type:
+                      type: string
+                      enum: [products]
+                    id:
+                      type: string
+                  required:
+                    - type
+                    - id
+              required:
+                - data
+                - links
+            license:
+              type: object
+              description: The license that the process is associated with.
+              properties:
+                links:
+                  $ref: "#/components/schemas/RelatedLinks"
+                data:
+                  type: object
+                  properties:
+                    type:
+                      type: string
+                      enum: [licenses]
+                    id:
+                      type: string
+                  required:
+                    - type
+                    - id
+              required:
+                - data
+                - links
+            machine:
+              type: object
+              description: The machine that the process is for.
+              properties:
+                links:
+                  $ref: "#/components/schemas/RelatedLinks"
+                data:
+                  type: object
+                  properties:
+                    type:
+                      type: string
+                      enum: [machines]
+                    id:
+                      type: string
+                  required:
+                    - type
+                    - id
+              required:
+                - data
+                - links
+          required:
+            - account
+            - machine
+        links:
+          $ref: "#/components/schemas/SelfLinks"
+      required:
+        - id
+        - type
+        - attributes
+        - relationships
+        - links
     Process:
       type: object
       summary: The process object
