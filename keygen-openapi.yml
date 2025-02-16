@@ -1176,6 +1176,27 @@ paths:
                           default: MATCH_ANY
                           description: |
                             The matching strategy for machine fingerprints supplied during a license validation.
+                        componentUniquenessStrategy:
+                          type: string
+                          enum:
+                            - UNIQUE_PER_ACCOUNT
+                            - UNIQUE_PER_PRODUCT
+                            - UNIQUE_PER_POLICY
+                            - UNIQUE_PER_LICENSE
+                            - UNIQUE_PER_MACHINE
+                          default: UNIQUE_PER_MACHINE
+                          description: |
+                            The uniqueness validation strategy for component fingerprints.
+                        componentMatchingStrategy:
+                          type: string
+                          enum:
+                            - MATCH_ANY
+                            - MATCH_TWO
+                            - MATCH_MOST
+                            - MATCH_ALL
+                          default: MATCH_ANY
+                          description: |
+                            The matching strategy for component fingerprints supplied during a license validation.
                         expirationStrategy:
                           type: string
                           enum:
@@ -6451,6 +6472,67 @@ components:
                 - **`MATCH_ALL`**:
                   All supplied fingerprints must match the fingerprints for the license's associated machines. E.g. if 3
                   fingerprints are supplied, all 3 of them must match.
+            componentUniquenessStrategy:
+                type: string
+                enum:
+                  - UNIQUE_PER_ACCOUNT
+                  - UNIQUE_PER_PRODUCT
+                  - UNIQUE_PER_POLICY
+                  - UNIQUE_PER_LICENSE
+                  - UNIQUE_PER_MACHINE
+                default: UNIQUE_PER_MACHINE
+                description: |
+                  The uniqueness validation strategy for component fingerprints. You can utilize this to prevent duplicate fingerprints across a variety of scopes.
+
+                  This is especially useful for disallowing trial licenses for specific hardware that had previously completed a trial evaluation using another trial machine
+                  or license. You would set the trial policy to `UNIQUE_PER_POLICY`, and then set any non-trial policies to `UNIQUE_PER_LICENSE`. This would effectively block a
+                  device from using multiple trials even if e.g. the operating system was reinstalled.
+
+                  ### Options
+
+                  - **`UNIQUE_PER_ACCOUNT`**:
+                    Component fingerprints must be unique across the entire Keygen account. This will block all duplicate fingerprints, regardless of whether or
+                    not the fingerprint belongs to another product, policy or license.
+                  - **`UNIQUE_PER_PRODUCT`**:
+                    Component fingerprints must be unique across all licenses belonging to a product. This will block all duplicate fingerprints of the same
+                    product, regardless of whether or not the fingerprint belongs to another policy or license.
+                  - **`UNIQUE_PER_POLICY`**:
+                    Component fingerprints must be unique across all licenses for the policy. This will block all duplicate fingerprints of the same policy,
+                    regardless of whether or not the fingerprint belongs to another license.
+                  - **`UNIQUE_PER_LICENSE`**:
+                    Component fingerprints must also be unique to the license. This will block all duplicate fingerprints for same license, but the same
+                    fingerprint can exist across different licenses.
+                  - **`UNIQUE_PER_MACHINE`**:
+                    Component fingerprints must be unique to the machine. This will allow the same component to exist across multiple machines for the same
+                    license. This is the default.
+            componentMatchingStrategy:
+                type: string
+                enum:
+                  - MATCH_ANY
+                  - MATCH_TWO
+                  - MATCH_MOST
+                  - MATCH_ALL
+                default: MATCH_ANY
+                description: |
+                  The matching strategy for component fingerprints supplied during a license validation.
+
+                  This is especially useful for managing individual hardware components of a given device, e.g. HDD ID, mobo ID, MAC addresses, IP addresses, etc., and then
+                  requiring that some, most, or all components match during a license validation. These can be managed through the components resource.
+
+                  ### Options
+
+                  - **`MATCH_ANY`**:
+                    At least 1 of the supplied fingerprints must match a fingerprint for the machine's associated components. E.g. if 3 fingerprints are supplied, at
+                    least 1 of them must match.
+                  - **`MATCH_TWO`**:
+                    At least 2 of the supplied fingerprints must match a fingerprint for the machine's associated components. E.g. if 4 fingerprints are supplied, at
+                    least 2 of them must match.
+                  - **`MATCH_MOST`**:
+                    The majority of supplied fingerprints must match the fingerprints for the machine's associated components. E.g. if 3 fingerprints are supplied, at
+                    least 2 of them must match.
+                  - **`MATCH_ALL`**:
+                    All supplied fingerprints must match the fingerprints for the machine's associated components. E.g. if 3 fingerprints are supplied, all 3 of them must
+                    match.
             expirationStrategy:
               type: string
               enum:
@@ -6629,6 +6711,8 @@ components:
             - heartbeatBasis
             - machineUniquenessStrategy
             - machineMatchingStrategy
+            - componentUniquenessStrategy
+            - componentMatchingStrategy
             - expirationStrategy
             - transferStrategy
             - authenticationStrategy
