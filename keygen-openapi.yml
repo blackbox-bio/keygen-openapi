@@ -8031,6 +8031,25 @@ components:
               required:
                 - data
                 - links
+            license:
+              type: object
+              properties:
+                links:
+                  $ref: "#/components/schemas/RelatedLinks"
+                data:
+                  type: object
+                  properties:
+                    type:
+                      type: string
+                      enum: [licenses]
+                    id:
+                      type: string
+                  required:
+                    - type
+                    - id
+              required:
+                - data
+                - links
             machine:
               type: object
               properties:
@@ -8052,6 +8071,7 @@ components:
                 - links
           required:
             - account
+            - license
             - machine
       required:
         - id
