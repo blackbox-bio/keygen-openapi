@@ -7762,7 +7762,9 @@ components:
                 - "null"
               description: The platform of the machine.
             maxProcesses:
-              type: integer
+              type: 
+                - integer
+                - "null"
               format: int64
               description: The maximum number of processes the machine can have associated with it.
             requireHeartbeat:
@@ -7957,7 +7959,6 @@ components:
             - product
             - license
             - group
-            - user
             - processes
         links:
           $ref: "#/components/schemas/SelfLinks"
