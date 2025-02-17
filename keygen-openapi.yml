@@ -7914,7 +7914,6 @@ components:
                     - type
                     - id
               required:
-                - data
                 - links
             owner:
               type: object
