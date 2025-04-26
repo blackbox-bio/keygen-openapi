@@ -5939,6 +5939,15 @@ paths:
           schema:
             type: string
       responses:
+        "200":
+          description: Artifact retrieved successfully
+          content:
+            application/vnd.api+json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Artifact"
         "303":
           description: Redirect to artifact download URL
           headers:
