@@ -5685,7 +5685,6 @@ paths:
       security:
         - Bearer: []
         - {}
-
   /accounts/{account}/releases/{release}:
     parameters:
       - $ref: "#/components/parameters/Account"
@@ -5771,7 +5770,6 @@ paths:
           $ref: "#/components/responses/Error"
       security:
         - Bearer: []
-
   /accounts/{account}/releases/{release}/actions/publish:
     post:
       tags:
@@ -5798,7 +5796,6 @@ paths:
           $ref: "#/components/responses/Error"
       security:
         - Bearer: []
-
   /accounts/{account}/releases/{release}/actions/yank:
     post:
       tags:
@@ -5825,7 +5822,6 @@ paths:
           $ref: "#/components/responses/Error"
       security:
         - Bearer: []
-
   /accounts/{account}/releases/{release}/upgrade:
     get:
       tags:
@@ -5880,7 +5876,6 @@ paths:
       security:
         - Bearer: []
         - {}
-
   /accounts/{account}/releases/{release}/artifacts:
     get:
       tags:
@@ -5916,7 +5911,6 @@ paths:
           $ref: "#/components/responses/Error"
       security:
         - Bearer: []
-
   /accounts/{account}/releases/{release}/artifacts/{artifact}:
     get:
       tags:
@@ -5949,18 +5943,17 @@ paths:
                   data:
                     $ref: "#/components/schemas/Artifact"
         "303":
-          description: Redirect to artifact download URL
+          description: Redirect to download URL. Following this redirect will return the actual file content with a 200 status code.
           headers:
             Location:
-              description: The URL to download the artifact from
               schema:
                 type: string
                 format: uri
+              description: The URL that will return the file content when followed
         default:
           $ref: "#/components/responses/Error"
       security:
         - Bearer: []
-
   /accounts/{account}/releases/{release}/constraints:
     post:
       tags:
@@ -6108,6 +6101,252 @@ paths:
           $ref: "#/components/responses/Error"
       security:
         - Bearer: []
+  /accounts/{account}/artifacts:
+    get:
+      tags:
+        - Artifacts
+      summary: List all artifacts
+      operationId: listArtifacts
+      description: Returns a list of artifacts. The artifacts are returned sorted by created date, with the most recent artifacts appearing first.
+      parameters:
+        - $ref: "#/components/parameters/Account"
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Page"
+        - name: product
+          in: query
+          schema:
+            type: string
+          description: The identifier (UUID) of the product to filter by.
+        - name: release
+          in: query
+          schema:
+            type: string
+          description: The identifier (UUID), version or tag of the release to filter by.
+        - name: channel
+          in: query
+          schema:
+            type: string
+          description: The identifier (UUID) or name of the channel to filter by.
+        - name: filetype
+          in: query
+          schema:
+            type: string
+          description: The identifier (UUID) or name of the filetype to filter by.
+        - name: platform
+          in: query
+          schema:
+            type: string
+          description: The identifier (UUID) or name of the platform to filter by.
+        - name: arch
+          in: query
+          schema:
+            type: string
+          description: The identifier (UUID) or name of the arch to filter by.
+        - name: status
+          in: query
+          schema:
+            type: string
+          description: The status to filter by.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: A list of artifacts
+          content:
+            application/vnd.api+json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Artifact'
+    post:
+      tags:
+        - Artifacts
+      summary: Upload an artifact
+      operationId: createArtifact
+      description: Creates a new artifact resource. Redirects to a file upload URL. The artifact will be in a `WAITING` status until a file is uploaded to AWS S3. If a file is not uploaded within 1 hour, the artifact will be moved to a `FAILED` status and automatically pruned after 24 hours.
+      parameters:
+        - $ref: "#/components/parameters/Account"
+      requestBody:
+        required: true
+        content:
+          application/vnd.api+json:
+            schema:
+              type: object
+              properties:
+                data:
+                  type: object
+                  properties:
+                    type:
+                      type: string
+                      enum: [artifacts]
+                    attributes:
+                      type: object
+                      properties:
+                        filename:
+                          type: string
+                        filetype:
+                          type: string
+                        filesize:
+                          type: integer
+                        platform:
+                          type: string
+                        arch:
+                          type: string
+                        signature:
+                          type: string
+                        checksum:
+                          type: string
+                    relationships:
+                      type: object
+                      properties:
+                        release:
+                          type: object
+                          properties:
+                            data:
+                              type: object
+                              properties:
+                                type:
+                                  type: string
+                                  enum: [releases]
+                                id:
+                                  type: string
+                  required:
+                    - type
+                    - attributes
+                    - relationships
+      security:
+        - bearerAuth: []
+      responses:
+        '307':
+          description: Temporary redirect to file upload URL
+          headers:
+            Location:
+              schema:
+                type: string
+                format: uri
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/Artifact'
+  /accounts/{account}/artifacts/{artifact}:
+    get:
+      tags:
+        - Artifacts
+      summary: Download an artifact
+      operationId: downloadArtifact
+      description: Retrieve an artifact. This can be used to generate temporary download URLs for licensees. When the artifact has not been uploaded, or the release is not published, the endpoint will respond with a 200 OK response. When the artifact has been uploaded and the release has been published, this endpoint will respond with a 303 See Other redirect.
+      parameters:
+        - $ref: "#/components/parameters/Account"
+        - name: artifact
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The identifier (UUID) or the filename of the artifact to be retrieved.
+        - name: ttl
+          in: query
+          schema:
+            type: integer
+            minimum: 60
+            maximum: 604800
+          description: The time-to-live (TTL), in seconds, for the download link. The value can be between 1 minute and 1 week, in seconds.
+        - name: product
+          in: query
+          schema:
+            type: string
+          description: The identifier (UUID) the product to filter by.
+        - name: channel
+          in: query
+          schema:
+            type: string
+          description: The name of the channel to filter by.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Artifact not uploaded or release not published
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/Artifact'
+        '303':
+          description: Redirect to download URL. Following this redirect will return the actual file content with a 200 status code.
+          headers:
+            Location:
+              schema:
+                type: string
+                format: uri
+              description: The URL that will return the file content when followed
+    patch:
+      tags:
+        - Artifacts
+      summary: Update an artifact
+      operationId: updateArtifact
+      description: Updates the specified artifact resource by setting the values of the parameters passed. Any parameters not provided will be left unchanged.
+      parameters:
+        - $ref: "#/components/parameters/Account"
+        - name: artifact
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The identifier (UUID) or the filename of the artifact to be retrieved.
+      requestBody:
+        required: true
+        content:
+          application/vnd.api+json:
+            schema:
+              type: object
+              properties:
+                data:
+                  type: object
+                  properties:
+                    type:
+                      type: string
+                      enum: [artifacts]
+                    attributes:
+                      type: object
+                      properties:
+                        filesize:
+                          type: integer
+                        signature:
+                          type: string
+                        checksum:
+                          type: string
+                  required:
+                    - type
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Updated artifact
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/Artifact'
+    delete:
+      tags:
+        - Artifacts
+      summary: Yank an artifact
+      operationId: deleteArtifact
+      description: Queues the artifact and its files to be permanently deleted. It cannot be undone.
+      parameters:
+        - $ref: "#/components/parameters/Account"
+        - name: artifact
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The identifier (UUID) or filename of the artifact to be yanked.
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Artifact queued for deletion
+
 
 webhooks:
   event:
