@@ -9425,27 +9425,40 @@ components:
           properties:
             filename:
               type: string
+              description: The filename of the artifact. This value must be unique to the artifact's release relationship. You may include prefixes e.g. `prod-1/install.sh` to create an orderly directory structure.
             filetype:
               type: string
+              description: The filetype of the artifact. This must match the filename's extension. When the filename does not contain an extension, filetype can be an arbitrary string, e.g. `bin` or `null`. When the release has multiple valid extensions, e.g. `tar.gz`, we recommend including the complete extension in the filetype.
             filesize:
               type: integer
+              description: The filesize of the artifact, in bytes.
             platform:
               type: string
+              description: The platform of the artifact, e.g. `darwin`.
             arch:
               type: string
+              description: The architecture of the artifact, e.g. `amd64`.
             signature:
               type: string
+              description: The signature of the artifact. This can be an arbitrary string, utilized outside of Keygen for verification purposes. For example, Keygen's CLI uses Ed25519ph signatures, base64 encoded without padding.
             checksum:
               type: string
+              description: The checksum of the artifact. This can be an arbitrary string, utilized outside of Keygen for verification purposes. For example, Keygen's CLI uses SHA-512 checksums, base64 encoded without padding.
             status:
               type: string
-              enum: [UPLOADED]
+              enum: [UPLOADED, WAITING, FAILED]
+              description: The artifact's status, indicating whether or not a file has been uploaded. Waiting and failed artifacts are unlisted.
+            metadata:
+              type: object
+              description: Additional metadata for the artifact.
             created:
               type: string
               format: date-time
+              description: When the artifact was uploaded.
             updated:
               type: string
               format: date-time
+              description: When the artifact was last updated.
         relationships:
           type: object
           properties:
@@ -9512,12 +9525,15 @@ components:
             redirect:
               type: string
               format: uri
+              description: The URL to upload the artifact file to.
             related:
               type: string
               format: uri
+              description: The URL to the related resource.
             self:
               type: string
               format: uri
+              description: The URL to the artifact itself.
 
     Constraint:
       type: object
