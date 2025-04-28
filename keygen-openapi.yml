@@ -6145,7 +6145,7 @@ paths:
         - name: status
           in: query
           schema:
-            type: string
+            $ref: "#/components/schemas/ArtifactStatus"
           description: The status to filter by.
       security:
         - bearerAuth: []
@@ -9687,9 +9687,7 @@ components:
               type: string
               description: The checksum of the artifact. This can be an arbitrary string, utilized outside of Keygen for verification purposes. For example, Keygen's CLI uses SHA-512 checksums, base64 encoded without padding.
             status:
-              type: string
-              enum: [UPLOADED, WAITING, FAILED]
-              description: The artifact's status, indicating whether or not a file has been uploaded. Waiting and failed artifacts are unlisted.
+              $ref: "#/components/schemas/ArtifactStatus"
             metadata:
               type: object
               description: Additional metadata for the artifact.
@@ -9776,6 +9774,11 @@ components:
               type: string
               format: uri
               description: The URL to the artifact itself.
+
+    ArtifactStatus:
+      type: string
+      enum: [UPLOADED, WAITING, FAILED]
+      description: The artifact's status, indicating whether or not a file has been uploaded. Waiting and failed artifacts are unlisted.
 
     Constraint:
       type: object
