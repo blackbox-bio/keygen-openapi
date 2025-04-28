@@ -5914,7 +5914,7 @@ paths:
   /accounts/{account}/releases/{release}/artifacts/{artifact}:
     get:
       tags:
-        - Releases
+        - ReleaseArtifactDownload
       operationId: downloadReleaseArtifact
       summary: Download a release artifact
       description: Downloads an artifact for the release.
@@ -6234,7 +6234,7 @@ paths:
   /accounts/{account}/artifacts/{artifact}:
     get:
       tags:
-        - Artifacts
+        - ArtifactDownload
       summary: Download an artifact
       operationId: downloadArtifact
       description: Retrieve an artifact. This can be used to generate temporary download URLs for licensees. When the artifact has not been uploaded, or the release is not published, the endpoint will respond with a 200 OK response. When the artifact has been uploaded and the release has been published, this endpoint will respond with a 303 See Other redirect.
@@ -6271,7 +6271,10 @@ paths:
           content:
             application/vnd.api+json:
               schema:
-                $ref: '#/components/schemas/Artifact'
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Artifact'
         '303':
           description: Redirect to download URL. Following this redirect will return the actual file content with a 200 status code.
           headers:
