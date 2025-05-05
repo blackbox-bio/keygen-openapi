@@ -5537,6 +5537,820 @@ paths:
           description: Second factor deleted successfully
         default:
           $ref: "#/components/responses/Error"
+  /accounts/{account}/releases:
+    post:
+      tags:
+        - Releases
+      operationId: createRelease
+      summary: Create a release
+      description: |
+        Creates a new release resource. Releases represent versioned "buckets" to put artifacts into. New releases will have a `DRAFT` status, and must be published before being listed.
+
+        After creating a release (or "bucket"), artifacts can be added to it via the create artifact endpoint before publishing the release.
+      parameters:
+        - $ref: "#/components/parameters/Account"
+      requestBody:
+        required: true
+        content:
+          application/vnd.api+json:
+            schema:
+              type: object
+              properties:
+                data:
+                  type: object
+                  required:
+                    - type
+                    - attributes
+                    - relationships
+                  properties:
+                    type:
+                      type: string
+                      enum: [releases]
+                    attributes:
+                      type: object
+                      required:
+                        - version
+                        - channel
+                      properties:
+                        name:
+                          type: string
+                          description: The human-readable name of the release.
+                        description:
+                          type: string
+                          description: The description of the release. Useful for releases notes.
+                        status:
+                          type: string
+                          enum: [DRAFT, PUBLISHED]
+                          default: DRAFT
+                          description: The release's initial status. Draft releases are unlisted.
+                        version:
+                          type: string
+                          description: The version of the release. Must be a valid semantic version string.
+                        tag:
+                          type: string
+                          description: The tag for the release, used for lookups.
+                        channel:
+                          type: string
+                          enum: [stable, rc, beta, alpha, dev]
+                          description: The channel for the release.
+                    relationships:
+                      type: object
+                      required:
+                        - product
+                      properties:
+                        product:
+                          type: object
+                          properties:
+                            data:
+                              type: object
+                              required:
+                                - type
+                                - id
+                              properties:
+                                type:
+                                  type: string
+                                  enum: [products]
+                                id:
+                                  type: string
+                                  format: uuid
+      responses:
+        "201":
+          description: Release created successfully
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: "#/components/schemas/ReleaseResponse"
+        default:
+          $ref: "#/components/responses/Error"
+      security:
+        - Bearer: []
+
+    get:
+      tags:
+        - Releases
+      operationId: listReleases
+      summary: List all releases
+      description: |
+        Returns a list of releases. The releases are returned sorted by creation date, with the most recent published releases appearing first.
+      parameters:
+        - $ref: "#/components/parameters/Account"
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/Limit"
+        - name: product
+          in: query
+          description: The identifier (UUID) of the product to filter by.
+          schema:
+            type: string
+            format: uuid
+        - name: package
+          in: query
+          description: The identifier (UUID) or key of the package to filter by.
+          schema:
+            type: string
+        - name: channel
+          in: query
+          description: The channel to filter by.
+          schema:
+            type: string
+            enum: [stable, rc, beta, alpha, dev]
+        - name: status
+          in: query
+          description: The status to filter by.
+          schema:
+            type: string
+            enum: [DRAFT, PUBLISHED, YANKED]
+        - name: entitlements
+          in: query
+          description: Array of entitlement codes to filter by.
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        "200":
+          description: Releases retrieved successfully
+          content:
+            application/vnd.api+json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Release"
+                  links:
+                    $ref: "#/components/schemas/PaginationLinks"
+        default:
+          $ref: "#/components/responses/Error"
+      security:
+        - Bearer: []
+        - {}
+  /accounts/{account}/releases/{release}:
+    parameters:
+      - $ref: "#/components/parameters/Account"
+      - name: release
+        in: path
+        description: The identifier (UUID), version or tag of the release.
+        required: true
+        schema:
+          type: string
+    
+    get:
+      tags:
+        - Releases
+      operationId: retrieveRelease
+      summary: Retrieve a release
+      description: Retrieves the details of an existing release.
+      responses:
+        "200":
+          description: Release retrieved successfully
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: "#/components/schemas/ReleaseResponse"
+        default:
+          $ref: "#/components/responses/Error"
+      security:
+        - Bearer: []
+        - {}
+
+    patch:
+      tags:
+        - Releases
+      operationId: updateRelease
+      summary: Update a release
+      description: Updates the specified release by setting the values of the parameters passed.
+      requestBody:
+        required: true
+        content:
+          application/vnd.api+json:
+            schema:
+              type: object
+              properties:
+                data:
+                  type: object
+                  required:
+                    - type
+                    - attributes
+                  properties:
+                    type:
+                      type: string
+                      enum: [releases]
+                    attributes:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                        description:
+                          type: string
+                        tag:
+                          type: string
+      responses:
+        "200":
+          description: Release updated successfully
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: "#/components/schemas/ReleaseResponse"
+        default:
+          $ref: "#/components/responses/Error"
+      security:
+        - Bearer: []
+
+    delete:
+      tags:
+        - Releases
+      operationId: deleteRelease
+      summary: Delete a release
+      description: Permanently deletes a release. It cannot be undone.
+      responses:
+        "204":
+          description: Release deleted successfully
+        default:
+          $ref: "#/components/responses/Error"
+      security:
+        - Bearer: []
+  /accounts/{account}/releases/{release}/actions/publish:
+    post:
+      tags:
+        - Releases
+      operationId: publishRelease
+      summary: Publish a release
+      description: Publishes a release. This action will set the release's status to PUBLISHED.
+      parameters:
+        - $ref: "#/components/parameters/Account"
+        - name: release
+          in: path
+          description: The identifier (UUID), version or tag of the release.
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Release published successfully
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: "#/components/schemas/ReleaseResponse"
+        default:
+          $ref: "#/components/responses/Error"
+      security:
+        - Bearer: []
+  /accounts/{account}/releases/{release}/actions/yank:
+    post:
+      tags:
+        - Releases
+      operationId: yankRelease
+      summary: Yank a release
+      description: Yanks a release. This action will set the release's status to YANKED.
+      parameters:
+        - $ref: "#/components/parameters/Account"
+        - name: release
+          in: path
+          description: The identifier (UUID), version or tag of the release.
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Release yanked successfully
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: "#/components/schemas/ReleaseResponse"
+        default:
+          $ref: "#/components/responses/Error"
+      security:
+        - Bearer: []
+  /accounts/{account}/releases/{release}/upgrade:
+    get:
+      tags:
+        - Releases
+      operationId: upgradeRelease
+      summary: Upgrade a release
+      description: |
+        Upgrades an existing release, returning the latest release for the product within the provided constraints.
+        For upgrades, releases are sorted by semantic version, not by creation time.
+      parameters:
+        - $ref: "#/components/parameters/Account"
+        - name: release
+          in: path
+          description: The identifier (UUID), version or tag of the release.
+          required: true
+          schema:
+            type: string
+        - name: product
+          in: query
+          description: The identifier (UUID) of the product to scope the upgrade to.
+          schema:
+            type: string
+            format: uuid
+        - name: constraint
+          in: query
+          description: The version constraint for the upgrade.
+          schema:
+            type: string
+        - name: package
+          in: query
+          description: The identifier (UUID) or key of the package to scope the upgrade to.
+          schema:
+            type: string
+        - name: channel
+          in: query
+          description: The release channel.
+          schema:
+            type: string
+            enum: [stable, rc, beta, alpha, dev]
+      responses:
+        "200":
+          description: Release upgrade found successfully
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: "#/components/schemas/ReleaseResponse"
+        "404":
+          description: No upgrade available
+          $ref: "#/components/responses/Error"
+        default:
+          $ref: "#/components/responses/Error"
+      security:
+        - Bearer: []
+        - {}
+  /accounts/{account}/releases/{release}/artifacts:
+    get:
+      tags:
+        - Releases
+      operationId: listReleaseArtifacts
+      summary: List release artifacts
+      description: Returns a list of artifacts for the release.
+      parameters:
+        - $ref: "#/components/parameters/Account"
+        - name: release
+          in: path
+          description: The identifier (UUID), version or tag of the release.
+          required: true
+          schema:
+            type: string
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: Artifacts retrieved successfully
+          content:
+            application/vnd.api+json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Artifact"
+                  links:
+                    $ref: "#/components/schemas/PaginationLinks"
+        default:
+          $ref: "#/components/responses/Error"
+      security:
+        - Bearer: []
+  /accounts/{account}/releases/{release}/artifacts/{artifact}:
+    get:
+      tags:
+        - ReleaseArtifactDownload
+      operationId: downloadReleaseArtifact
+      summary: Download a release artifact
+      description: Downloads an artifact for the release.
+      parameters:
+        - $ref: "#/components/parameters/Account"
+        - name: release
+          in: path
+          description: The identifier (UUID), version or tag of the release.
+          required: true
+          schema:
+            type: string
+        - name: artifact
+          in: path
+          description: The identifier (UUID) or filename of the artifact.
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Artifact retrieved successfully
+          content:
+            application/vnd.api+json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Artifact"
+        "303":
+          description: Redirect to download URL. Following this redirect will return the actual file content with a 200 status code.
+          headers:
+            Location:
+              schema:
+                type: string
+                format: uri
+              description: The URL that will return the file content when followed
+        default:
+          $ref: "#/components/responses/Error"
+      security:
+        - Bearer: []
+  /accounts/{account}/releases/{release}/constraints:
+    post:
+      tags:
+        - Releases
+      operationId: attachReleaseConstraints
+      summary: Attach entitlement constraints
+      description: Attach entitlement constraints to a release.
+      parameters:
+        - $ref: "#/components/parameters/Account"
+        - name: release
+          in: path
+          description: The identifier (UUID), version or tag of the release.
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/vnd.api+json:
+            schema:
+              type: object
+              properties:
+                data:
+                  type: array
+                  items:
+                    type: object
+                    required:
+                      - type
+                      - relationships
+                    properties:
+                      type:
+                        type: string
+                        enum: [constraints]
+                      relationships:
+                        type: object
+                        required:
+                          - entitlement
+                        properties:
+                          entitlement:
+                            type: object
+                            properties:
+                              data:
+                                type: object
+                                required:
+                                  - type
+                                  - id
+                                properties:
+                                  type:
+                                    type: string
+                                    enum: [entitlements]
+                                  id:
+                                    type: string
+                                    format: uuid
+      responses:
+        "201":
+          description: Constraints attached successfully
+          content:
+            application/vnd.api+json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Constraint"
+        default:
+          $ref: "#/components/responses/Error"
+      security:
+        - Bearer: []
+
+    delete:
+      tags:
+        - Releases
+      operationId: detachReleaseConstraints
+      summary: Detach entitlement constraints
+      description: Detach entitlement constraints from a release.
+      parameters:
+        - $ref: "#/components/parameters/Account"
+        - name: release
+          in: path
+          description: The identifier (UUID), version or tag of the release.
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/vnd.api+json:
+            schema:
+              type: object
+              properties:
+                data:
+                  type: array
+                  items:
+                    type: object
+                    required:
+                      - type
+                      - id
+                    properties:
+                      type:
+                        type: string
+                        enum: [constraints]
+                      id:
+                        type: string
+                        format: uuid
+      responses:
+        "204":
+          description: Constraints detached successfully
+        default:
+          $ref: "#/components/responses/Error"
+      security:
+        - Bearer: []
+
+    get:
+      tags:
+        - Releases
+      operationId: listReleaseConstraints
+      summary: List entitlement constraints
+      description: Returns a list of entitlement constraints attached to the release.
+      parameters:
+        - $ref: "#/components/parameters/Account"
+        - name: release
+          in: path
+          description: The identifier (UUID), version or tag of the release.
+          required: true
+          schema:
+            type: string
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: Constraints retrieved successfully
+          content:
+            application/vnd.api+json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Constraint"
+                  links:
+                    $ref: "#/components/schemas/PaginationLinks"
+        default:
+          $ref: "#/components/responses/Error"
+      security:
+        - Bearer: []
+  /accounts/{account}/artifacts:
+    get:
+      tags:
+        - Artifacts
+      summary: List all artifacts
+      operationId: listArtifacts
+      description: Returns a list of artifacts. The artifacts are returned sorted by created date, with the most recent artifacts appearing first.
+      parameters:
+        - $ref: "#/components/parameters/Account"
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Page"
+        - name: product
+          in: query
+          schema:
+            type: string
+          description: The identifier (UUID) of the product to filter by.
+        - name: release
+          in: query
+          schema:
+            type: string
+          description: The identifier (UUID), version or tag of the release to filter by.
+        - name: channel
+          in: query
+          schema:
+            type: string
+          description: The identifier (UUID) or name of the channel to filter by.
+        - name: filetype
+          in: query
+          schema:
+            type: string
+          description: The identifier (UUID) or name of the filetype to filter by.
+        - name: platform
+          in: query
+          schema:
+            type: string
+          description: The identifier (UUID) or name of the platform to filter by.
+        - name: arch
+          in: query
+          schema:
+            type: string
+          description: The identifier (UUID) or name of the arch to filter by.
+        - name: status
+          in: query
+          schema:
+            $ref: "#/components/schemas/ArtifactStatus"
+          description: The status to filter by.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: A list of artifacts
+          content:
+            application/vnd.api+json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Artifact'
+    post:
+      tags:
+        - Artifacts
+      summary: Upload an artifact
+      operationId: createArtifact
+      description: Creates a new artifact resource. Redirects to a file upload URL. The artifact will be in a `WAITING` status until a file is uploaded to AWS S3. If a file is not uploaded within 1 hour, the artifact will be moved to a `FAILED` status and automatically pruned after 24 hours.
+      parameters:
+        - $ref: "#/components/parameters/Account"
+      requestBody:
+        required: true
+        content:
+          application/vnd.api+json:
+            schema:
+              type: object
+              properties:
+                data:
+                  type: object
+                  properties:
+                    type:
+                      type: string
+                      enum: [artifacts]
+                    attributes:
+                      type: object
+                      properties:
+                        filename:
+                          type: string
+                        filetype:
+                          type: string
+                        filesize:
+                          type: integer
+                        platform:
+                          type: string
+                        arch:
+                          type: string
+                        signature:
+                          type: string
+                        checksum:
+                          type: string
+                    relationships:
+                      type: object
+                      properties:
+                        release:
+                          type: object
+                          properties:
+                            data:
+                              type: object
+                              properties:
+                                type:
+                                  type: string
+                                  enum: [releases]
+                                id:
+                                  type: string
+                  required:
+                    - type
+                    - attributes
+                    - relationships
+      security:
+        - bearerAuth: []
+      responses:
+        '307':
+          description: Temporary redirect to file upload URL
+          headers:
+            Location:
+              schema:
+                type: string
+                format: uri
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/Artifact'
+  /accounts/{account}/artifacts/{artifact}:
+    get:
+      tags:
+        - ArtifactDownload
+      summary: Download an artifact
+      operationId: downloadArtifact
+      description: Retrieve an artifact. This can be used to generate temporary download URLs for licensees. When the artifact has not been uploaded, or the release is not published, the endpoint will respond with a 200 OK response. When the artifact has been uploaded and the release has been published, this endpoint will respond with a 303 See Other redirect.
+      parameters:
+        - $ref: "#/components/parameters/Account"
+        - name: artifact
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The identifier (UUID) or the filename of the artifact to be retrieved.
+        - name: ttl
+          in: query
+          schema:
+            type: integer
+            minimum: 60
+            maximum: 604800
+          description: The time-to-live (TTL), in seconds, for the download link. The value can be between 1 minute and 1 week, in seconds.
+        - name: product
+          in: query
+          schema:
+            type: string
+          description: The identifier (UUID) the product to filter by.
+        - name: channel
+          in: query
+          schema:
+            type: string
+          description: The name of the channel to filter by.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Artifact not uploaded or release not published
+          content:
+            application/vnd.api+json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Artifact'
+        '303':
+          description: Redirect to download URL. Following this redirect will return the actual file content with a 200 status code.
+          headers:
+            Location:
+              schema:
+                type: string
+                format: uri
+              description: The URL that will return the file content when followed
+    patch:
+      tags:
+        - Artifacts
+      summary: Update an artifact
+      operationId: updateArtifact
+      description: Updates the specified artifact resource by setting the values of the parameters passed. Any parameters not provided will be left unchanged.
+      parameters:
+        - $ref: "#/components/parameters/Account"
+        - name: artifact
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The identifier (UUID) or the filename of the artifact to be retrieved.
+      requestBody:
+        required: true
+        content:
+          application/vnd.api+json:
+            schema:
+              type: object
+              properties:
+                data:
+                  type: object
+                  properties:
+                    type:
+                      type: string
+                      enum: [artifacts]
+                    attributes:
+                      type: object
+                      properties:
+                        filesize:
+                          type: integer
+                        signature:
+                          type: string
+                        checksum:
+                          type: string
+                  required:
+                    - type
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Updated artifact
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/Artifact'
+    delete:
+      tags:
+        - Artifacts
+      summary: Yank an artifact
+      operationId: deleteArtifact
+      description: Queues the artifact and its files to be permanently deleted. It cannot be undone.
+      parameters:
+        - $ref: "#/components/parameters/Account"
+        - name: artifact
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The identifier (UUID) or filename of the artifact to be yanked.
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Artifact queued for deletion
+
+
 webhooks:
   event:
     post:
@@ -5618,7 +6432,6 @@ components:
   schemas:
     Token:
       type: object
-      summary: The token object
       description: |
         **Keygen authenticates your API requests using tokens.**
 
@@ -5907,7 +6720,6 @@ components:
         - links
     Entitlement:
       type: object
-      summary: The entitlement object
       description: |
         Below you will find the various attributes for the entitlement resource. Entitlements can be attached to
         policies and to licenses to grant named "permissions" for things such as application features.
@@ -5993,7 +6805,6 @@ components:
         - links
     Group:
       type: object
-      summary: The group object
       description: |
         Groups can be used to associate multiple users, licenses and machines under a single group. This is great for
         setting up "Teams" or group licenses. For example, you use an "ACME Co." group for a team license package that
@@ -6137,7 +6948,6 @@ components:
         - links
     Policy:
       type: object
-      summary: The policy object
       description: |
         Below you will find the various attributes for the policy resource, as well as the policy resource's
         relationships. Your policies define the different types of licenses that a given product offers. For example,
@@ -6803,7 +7613,6 @@ components:
         - relationships
         - links
     PolicyEntitlement:
-      summary: The policy entitlement object
       type: object
       properties:
         id:
@@ -6897,7 +7706,6 @@ components:
         - links
     User:
       type: object
-      summary: The user object
       description: |
         Keygen provides identity management for your customers, which allows you to authenticate them using an
         email/password by creating a [token](https://keygen.sh/docs/api/tokens/). The token can then be used to manage
@@ -7004,7 +7812,6 @@ components:
             - email
             - status
             - role
-            - metadata
             - created
             - updated
             - metadata
@@ -7110,7 +7917,6 @@ components:
         - links
     License:
       type: object
-      summary: The license object
       description: |
         Below you will find the various attributes for the license resource, as well as the license resource's
         relationships. A license is an implementation of a product's policy.
@@ -7488,7 +8294,6 @@ components:
         - relationships
         - links
     LicenseEntitlement:
-      summary: The license entitlement object
       type: object
       properties:
         id:
@@ -7581,7 +8386,6 @@ components:
         - relationships
         - links
     LicenseFile:
-      summary: The license file object
       type: object
       properties:
         id:
@@ -7719,7 +8523,6 @@ components:
         - meta
     Machine:
       type: object
-      summary: The machine object
       description: |
         Below you will find the various attributes for the machine resource, as well as the machine resource's
         relationships. Machines can be used to track and manage where your users are allowed to use your product.
@@ -7968,7 +8771,6 @@ components:
         - relationships
         - links
     MachineFile:
-      summary: The machine file object
       type: object
       properties:
         id:
@@ -8250,7 +9052,6 @@ components:
         - links
     Process:
       type: object
-      summary: The process object
       description: |
         Utilizing processes, you can manage application concurrency across machines. For example, you could restrict the
         number of application instances allowed per-machine.
@@ -8420,7 +9221,6 @@ components:
         - links
     WebhookEvent:
       type: object
-      summary: The webhook event object
       description: |
         Webhook events are dispatched using POST requests to an account's webhook endpoints. Events usually get sent
         quickly, but sometimes there can be a small delay. If you experience a delay longer than 1 hour for the initial
@@ -8609,7 +9409,6 @@ components:
         - links
     SecondFactor:
       type: object
-      summary: The second factor object
       description: |
         Below you will find the various attributes for the second factor resource, as well as the resource's
         relationships.
@@ -8696,6 +9495,375 @@ components:
         - type
         - attributes
         - relationships
+    Release:
+      type: object
+      description: |
+        Below you will find the various attributes for the release resource, as well as the release resource's relationships.
+        Release versioning must follow the semver spec.
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [releases]
+        attributes:
+          type: object
+          properties:
+            name:
+              type: string
+              description: The human-readable name of the release.
+            description:
+              type: string
+              description: The description of the release.
+            channel:
+              type: string
+              enum: [stable, rc, beta, alpha, dev]
+              description: The channel for the release.
+            status:
+              type: string
+              enum: [DRAFT, PUBLISHED, YANKED]
+              description: The release's status.
+            tag:
+              type: string
+              description: The tag for the release.
+            version:
+              type: string
+              description: The version of the release.
+            semver:
+              type: object
+              description: Object containing deconstructed key-value semver components.
+              properties:
+                major:
+                  type: integer
+                minor:
+                  type: integer
+                patch:
+                  type: integer
+                prerelease:
+                  type: string
+                build:
+                  type: string
+            created:
+              type: string
+              format: date-time
+              description: When the release was created.
+            updated:
+              type: string
+              format: date-time
+              description: When the release was last updated.
+            yanked:
+              type: string
+              format: date-time
+              description: When the release was yanked.
+        relationships:
+          type: object
+          properties:
+            account:
+              type: object
+              properties:
+                links:
+                  $ref: "#/components/schemas/RelatedLinks"
+                data:
+                  type: object
+                  properties:
+                    type:
+                      type: string
+                      enum: [accounts]
+                    id:
+                      type: string
+                  required:
+                    - type
+                    - id
+            environment:
+              type: object
+              properties:
+                links:
+                  $ref: "#/components/schemas/RelatedLinks"
+                data:
+                  type: object
+                  properties:
+                    type:
+                      type: string
+                      enum: [environments]
+                    id:
+                      type: string
+                  required:
+                    - type
+                    - id
+            product:
+              type: object
+              properties:
+                links:
+                  $ref: "#/components/schemas/RelatedLinks"
+                data:
+                  type: object
+                  properties:
+                    type:
+                      type: string
+                      enum: [products]
+                    id:
+                      type: string
+                  required:
+                    - type
+                    - id
+            package:
+              type: object
+              properties:
+                links:
+                  $ref: "#/components/schemas/RelatedLinks"
+                data:
+                  type: object
+                  properties:
+                    type:
+                      type: string
+                      enum: [packages]
+                    id:
+                      type: string
+                  required:
+                    - type
+                    - id
+            entitlements:
+              type: object
+              properties:
+                links:
+                  $ref: "#/components/schemas/RelatedLinks"
+            constraints:
+              type: object
+              properties:
+                links:
+                  $ref: "#/components/schemas/RelatedLinks"
+            artifacts:
+              type: object
+              properties:
+                links:
+                  $ref: "#/components/schemas/RelatedLinks"
+        links:
+          type: object
+          properties:
+            self:
+              type: string
+              format: uri
+
+    ReleaseResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          $ref: "#/components/schemas/Release"
+
+    Artifact:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [artifacts]
+        attributes:
+          type: object
+          properties:
+            filename:
+              type: string
+              description: The filename of the artifact. This value must be unique to the artifact's release relationship. You may include prefixes e.g. `prod-1/install.sh` to create an orderly directory structure.
+            filetype:
+              type: string
+              description: The filetype of the artifact. This must match the filename's extension. When the filename does not contain an extension, filetype can be an arbitrary string, e.g. `bin` or `null`. When the release has multiple valid extensions, e.g. `tar.gz`, we recommend including the complete extension in the filetype.
+            filesize:
+              type: integer
+              description: The filesize of the artifact, in bytes.
+            platform:
+              type: string
+              description: The platform of the artifact, e.g. `darwin`.
+            arch:
+              type: string
+              description: The architecture of the artifact, e.g. `amd64`.
+            signature:
+              type: string
+              description: The signature of the artifact. This can be an arbitrary string, utilized outside of Keygen for verification purposes. For example, Keygen's CLI uses Ed25519ph signatures, base64 encoded without padding.
+            checksum:
+              type: string
+              description: The checksum of the artifact. This can be an arbitrary string, utilized outside of Keygen for verification purposes. For example, Keygen's CLI uses SHA-512 checksums, base64 encoded without padding.
+            status:
+              $ref: "#/components/schemas/ArtifactStatus"
+            metadata:
+              type: object
+              description: Additional metadata for the artifact.
+            created:
+              type: string
+              format: date-time
+              description: When the artifact was uploaded.
+            updated:
+              type: string
+              format: date-time
+              description: When the artifact was last updated.
+        relationships:
+          type: object
+          properties:
+            account:
+              type: object
+              description: The account that the artifact belongs to.
+              properties:
+                links:
+                  $ref: "#/components/schemas/RelatedLinks"
+                data:
+                  type: object
+                  properties:
+                    type:
+                      type: string
+                      enum: [accounts]
+                    id:
+                      type: string
+              required:
+                - links
+                - data
+            environment:
+              type: object
+              description: The environment that the artifact belongs to.
+              properties:
+                links:
+                  $ref: "#/components/schemas/RelatedLinks"
+                data:
+                  type: object
+                  properties:
+                    type:
+                      type: string
+                      enum: [environments]
+                    id:
+                      type: string
+                  required:
+                    - type
+                    - id
+              required:
+                - links
+                - data
+            release:
+              type: object
+              description: The release that the artifact belongs to.
+              properties:
+                links:
+                  $ref: "#/components/schemas/RelatedLinks"
+                data:
+                  type: object
+                  properties:
+                    type:
+                      type: string
+                      enum: [releases]
+                    id:
+                      type: string
+                  required:
+                    - type
+                    - id
+              required:
+                - links
+                - data
+        links:
+          type: object
+          properties:
+            redirect:
+              type: string
+              format: uri
+              description: The URL to upload the artifact file to.
+            related:
+              type: string
+              format: uri
+              description: The URL to the related resource.
+            self:
+              type: string
+              format: uri
+              description: The URL to the artifact itself.
+
+    ArtifactStatus:
+      type: string
+      enum: [UPLOADED, WAITING, FAILED]
+      description: The artifact's status, indicating whether or not a file has been uploaded. Waiting and failed artifacts are unlisted.
+
+    Constraint:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [constraints]
+        attributes:
+          type: object
+          properties:
+            created:
+              type: string
+              format: date-time
+            updated:
+              type: string
+              format: date-time
+        relationships:
+          type: object
+          properties:
+            account:
+              type: object
+              description: The users that are in the group.
+              properties:
+                links:
+                  $ref: "#/components/schemas/RelatedLinks"
+                data:
+                  type: object
+                  properties:
+                    type:
+                      type: string
+                      enum: [accounts]
+                    id:
+                      type: string
+              required:
+                - links
+                - data
+            entitlement:
+              type: object
+              description: The entitlement that the constraint is for.
+              properties:
+                links:
+                  $ref: "#/components/schemas/RelatedLinks"
+                data:
+                  type: object
+                  properties:
+                    type:
+                      type: string
+                      enum: [entitlements]
+                    id:
+                      type: string
+                  required:
+                    - type
+                    - id
+              required:
+                - links
+                - data
+            release:
+              type: object
+              description: The release that the constraint is for.
+              properties:
+                links:
+                  $ref: "#/components/schemas/RelatedLinks"
+                data:
+                  type: object
+                  properties:
+                    type:
+                      type: string
+                      enum: [releases]
+                    id:
+                      type: string
+                  required:
+                    - type
+                    - id
+              required:
+                - links
+                - data
+        links:
+          type: object
+          properties:
+            related:
+              type: string
+              format: uri
     Error:
       type: object
       properties:
