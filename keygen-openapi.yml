@@ -1945,16 +1945,7 @@ paths:
                           type: string
                           description: The password for the user.
                         role:
-                          type: string
-                          default: user
-                          enum:
-                            - user
-                            - support-agent
-                            - sales-agent
-                            - developer
-                            - read-only
-                            - admin
-                          description: The role of the user.
+                          $ref: "#/components/schemas/Role"
                         metadata:
                           type: object
                           description: Object containing user metadata.
@@ -2052,14 +2043,7 @@ paths:
           schema:
             type: array
             items:
-              type: string
-              enum:
-                - user
-                - support-agent
-                - sales-agent
-                - developer
-                - read-only
-                - admin
+              $ref: "#/components/schemas/Role"
         - name: metadata
           in: query
           description: The metadata object to filter by.
@@ -2164,16 +2148,7 @@ paths:
                           type: string
                           description: The password for the user.
                         role:
-                          type: string
-                          default: user
-                          enum:
-                            - user
-                            - support-agent
-                            - sales-agent
-                            - developer
-                            - read-only
-                            - admin
-                          description: The role of the user.
+                          $ref: "#/components/schemas/Role"
                         metadata:
                           type: object
                           description: Object containing user metadata.
@@ -7758,36 +7733,7 @@ components:
                 checked out, or checked in within the last 90 days. An inactive user is a user that has none of those
                 traits. One of: `ACTIVE`, `INACTIVE`, or `BANNED`.
             role:
-              type: string
-              enum:
-                - user
-                - support-agent
-                - sales-agent
-                - developer
-                - read-only
-                - admin
-              description: |
-                The role for the user.
-
-                ### Options
-
-                - **`user`**:
-                  A normal user of one or more of your products. Depending on account settings, they can have permission
-                  to manage their own resources, e.g. licenses and machines. They cannot manage other users' resources.
-                - **`support-agent`**:
-                  An internal administrative user of your Keygen account, with a limited subset of permissions. Support
-                  Agents can read most resource data, but cannot create, update or delete resources.
-                - **`sales-agent`**:
-                  An internal administrative user of your Keygen account, with a limited subset of permissions. Sales
-                  Agents can read most resource data, but can only create, update and delete specific resources.
-                - **`developer`**:
-                  An internal administrative user of your Keygen account, with permission to manage all resources, but
-                  they cannot manage account billing.
-                - **`read-only`**:
-                  An internal administrative user of your Keygen account, with permission to read all resources, except
-                  for account billing.
-                - **`admin`**:
-                  An internal administrative user of your Keygen account, with permission to manage the entire account.
+              $ref: "#/components/schemas/Role"
             permissions:
               type: array
               items:
@@ -7915,6 +7861,49 @@ components:
         - attributes
         - relationships
         - links
+    Role:
+      type: string
+      description: |
+        The role for the user.
+
+        ### Options
+
+        - **`anon`**:
+          Unauthenticated users can create a new user profile (unless your account is protected), access open/public releases, and validate license keys using the validate-key action. No other endpoints are accessisible to unauthenticated users.
+        - **`user`**:
+          Authenticated users may access certain resource endpoints, but all resources that are returned will be scoped to their user profile, e.g. when a user makes a request to list all licenses, only the licenses which are associated with their user profile will be returned.
+        - **`license`**:
+          Authenticated licenses may access certain resource endpoints through license key authentication or via license tokens, but all resources that are returned will be scoped to the license, e.g. when a license makes a request to list all machines, only the machines that are associated to the license will be returned.
+        - **`product`**:
+          Authenticated products may access resources for their account that are associated with that particular product. All resources that are returned will be scoped to the product, e.g. when a product makes a request to list all licenses, only the licenses which are associated with the product will be returned.
+        - **`env`**:
+          Authenticated environments may access resources for their account that are within that particular environment. All resources that are returned will be scoped to the environment, e.g. when an environment makes a request to list all licenses, only the licenses within the environment will be returned.
+        - **`support-agent`** (deprecated):
+          An internal administrative user of your Keygen account, with a limited subset of permissions. Support
+          Agents can read most resource data, but cannot create, update or delete resources.
+        - **`sales-agent`** (deprecated):
+          An internal administrative user of your Keygen account, with a limited subset of permissions. Sales
+          Agents can read most resource data, but can only create, update and delete specific resources.
+        - **`developer`** (deprecated):
+          An internal administrative user of your Keygen account, with permission to manage all resources, but
+          they cannot manage account billing.
+        - **`read-only`** (deprecated):
+          An internal administrative user of your Keygen account, with permission to read all resources, except
+          for account billing.
+        - **`admin`**:
+          Authenticated admin users may access all resources for their account.
+      default: user
+      enum:
+        - anon
+        - user
+        - license
+        - product
+        - env
+        - support-agent
+        - sales-agent
+        - developer
+        - read-only
+        - admin
     License:
       type: object
       description: |
