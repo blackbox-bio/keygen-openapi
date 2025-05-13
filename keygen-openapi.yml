@@ -4420,18 +4420,8 @@ paths:
           schema:
             type: string
       responses:
-        "200":
+        "204":
           description: Machine deactivated successfully
-          content:
-            application/vnd.api+json:
-              schema:
-                title: DeactivateMachineResponse
-                type: object
-                properties:
-                  data:
-                    $ref: "#/components/schemas/Machine"
-                required:
-                  - data
         default:
           $ref: "#/components/responses/Error"
   /accounts/{account}/machines/{machine}/actions/check-out:
