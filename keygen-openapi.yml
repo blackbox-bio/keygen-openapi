@@ -3234,7 +3234,7 @@ paths:
       operationId: suspendLicense
       summary: Suspend a license
       description: |
-        Action to temporarily suspend (ban) a license. This will cause the license to fail validation until reinistated.
+        Action to temporarily suspend (ban) a license. This will cause the license to fail validation until reinstated.
         To permanently revoke a license, see the [revoke action](https://keygen.sh/docs/api/licenses/#licenses-actions-revoke).
       parameters:
         - $ref: "#/components/parameters/Account"
@@ -3768,7 +3768,7 @@ paths:
             type: string
       responses:
         "200":
-          description: License entitlements retreived successfully
+          description: License entitlements retrieved successfully
           content:
             application/vnd.api+json:
               schema:
@@ -7863,7 +7863,7 @@ components:
         ### Options
 
         - **`anon`**:
-          Unauthenticated users can create a new user profile (unless your account is protected), access open/public releases, and validate license keys using the validate-key action. No other endpoints are accessisible to unauthenticated users.
+          Unauthenticated users can create a new user profile (unless your account is protected), access open/public releases, and validate license keys using the validate-key action. No other endpoints are accessible to unauthenticated users.
         - **`user`**:
           Authenticated users may access certain resource endpoints, but all resources that are returned will be scoped to their user profile, e.g. when a user makes a request to list all licenses, only the licenses which are associated with their user profile will be returned.
         - **`license`**:

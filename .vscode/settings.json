@@ -1,3 +1,9 @@
 {
-    "yaml.maxItemsComputed": 100000
+    "yaml.maxItemsComputed": 100000,
+    "cSpell.words": [
+        "mobo",
+        "PKCS",
+        "unban",
+        "unpooled"
+    ]
 }
