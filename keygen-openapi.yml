@@ -3123,6 +3123,10 @@ paths:
                 meta:
                   type: object
                   properties:
+                    key:
+                      type: string
+                      description: |
+                        The license key to validate.
                     nonce:
                       type: string
                       description: |
@@ -4135,7 +4139,7 @@ paths:
                           type: object
                           description: The user the machine belongs to. If authenticated as a license user, this relationship is required and must be the authenticated user.
                           properties:
-                            data:                              
+                            data:
                               type:
                                 - object
                                 - "null"
@@ -5659,7 +5663,7 @@ paths:
         required: true
         schema:
           type: string
-    
+
     get:
       tags:
         - Releases
@@ -8548,7 +8552,7 @@ components:
                 - "null"
               description: The platform of the machine.
             maxProcesses:
-              type: 
+              type:
                 - integer
                 - "null"
               format: int64
