@@ -1933,16 +1933,22 @@ paths:
                       type: object
                       properties:
                         firstName:
-                          type: string
+                          type:
+                            - string
+                            - "null"
                           description: The first name of the user.
                         lastName:
-                          type: string
+                          type:
+                            - string
+                            - "null"
                           description: The last name of the user.
                         email:
                           type: string
                           description: The unique email of the user.
                         password:
-                          type: string
+                          type:
+                            - string
+                            - "null"
                           description: The password for the user.
                         role:
                           $ref: "#/components/schemas/Role"
