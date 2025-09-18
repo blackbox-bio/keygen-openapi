@@ -3402,7 +3402,9 @@ paths:
           description: The time-to-live (TTL) of the checked out license file, in seconds.
           required: false
           schema:
-            type: integer
+            type:
+              - integer
+              - "null"
             format: int64
             minimum: 3600
             maximum: 31556952
@@ -4467,7 +4469,9 @@ paths:
           description: The time-to-live (TTL) of the checked out machine file, in seconds.
           required: false
           schema:
-            type: integer
+            type:
+              - integer
+              - "null"
             format: int64
             minimum: 3600
             maximum: 31556952
