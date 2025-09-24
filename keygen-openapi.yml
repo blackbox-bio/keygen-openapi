@@ -6397,7 +6397,7 @@ paths:
       requestBody:
         required: true
         content:
-          application/vnd.json+api:
+          application/vnd.api+json:
             schema:
               title: CreatePackageRequest
               type: object
