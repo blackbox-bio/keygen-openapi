@@ -6366,6 +6366,7 @@ paths:
           content:
             application/vnd.api+json:
               schema:
+                title: ListPackagesResponse
                 type: object
                 properties:
                   data:
