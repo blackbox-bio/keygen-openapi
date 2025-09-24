@@ -6375,6 +6375,9 @@ paths:
                       $ref: "#/components/schemas/Package"
                   links:
                     $ref: "#/components/schemas/PaginationLinks"
+                required:
+                  - data
+                  - links
         default:
           $ref: "#/components/responses/Error"
       security:
