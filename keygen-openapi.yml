@@ -6444,6 +6444,8 @@ paths:
                             Object containing package metadata. This can be used to store arbitrary key-value data,
                             e.g. for book keeping or display purposes.
                           additionalProperties: true
+                      required:
+                        - key
                     relationships:
                       type: object
                       properties:
@@ -6466,6 +6468,10 @@ paths:
                             - data
                       required:
                         - product
+                  required:
+                    - type
+                    - attributes
+                    - relationships
               required:
                 - data
       responses:
