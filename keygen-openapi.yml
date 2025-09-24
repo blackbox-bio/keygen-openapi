@@ -6605,7 +6605,7 @@ paths:
         and artifacts that the package is associated with.
       parameters:
         - $ref: "#/components/parameters/Account"
-        - name: policy
+        - name: package
           in: path
           description: The identifier (UUID) or key of the package to be deleted.
           required: true
