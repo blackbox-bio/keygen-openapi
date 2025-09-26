@@ -6380,9 +6380,6 @@ paths:
                   - links
         default:
           $ref: "#/components/responses/Error"
-      security:
-        - Bearer: []
-        - {}
     post:
       tags:
         - Packages
